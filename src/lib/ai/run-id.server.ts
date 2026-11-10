@@ -1,0 +1,13 @@
+const H = "X-Lovable-AIG-Run-ID";
+export function createRunIdFetch() {
+  let runId: string | undefined;
+  return {
+    fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
+      const headers = new Headers(init?.headers);
+      if (runId && !headers.has(H)) headers.set(H, runId);
+      const res = await fetch(input, { ...init, headers });
+      runId ??= res.headers.get(H)?.trim() || undefined;
+      return res;
+    },
+  };
+}
