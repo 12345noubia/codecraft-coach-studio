@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SplatRouteImport } from './routes/$'
+import { Route as StudioIndexRouteImport } from './routes/studio.index'
+import { Route as StudioTrackIdLessonIdRouteImport } from './routes/studio.$trackId.$lessonId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +24,49 @@ const SplatRoute = SplatRouteImport.update({
   path: '/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudioIndexRoute = StudioIndexRouteImport.update({
+  id: '/studio/',
+  path: '/studio/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudioTrackIdLessonIdRoute = StudioTrackIdLessonIdRouteImport.update({
+  id: '/studio/$trackId/$lessonId',
+  path: '/studio/$trackId/$lessonId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/studio/': typeof StudioIndexRoute
+  '/studio/$trackId/$lessonId': typeof StudioTrackIdLessonIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/studio': typeof StudioIndexRoute
+  '/studio/$trackId/$lessonId': typeof StudioTrackIdLessonIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/studio/': typeof StudioIndexRoute
+  '/studio/$trackId/$lessonId': typeof StudioTrackIdLessonIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$'
+  fullPaths: '/' | '/$' | '/studio/' | '/studio/$trackId/$lessonId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$'
-  id: '__root__' | '/' | '/$'
+  to: '/' | '/$' | '/studio' | '/studio/$trackId/$lessonId'
+  id: '__root__' | '/' | '/$' | '/studio/' | '/studio/$trackId/$lessonId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SplatRoute: typeof SplatRoute
+  StudioIndexRoute: typeof StudioIndexRoute
+  StudioTrackIdLessonIdRoute: typeof StudioTrackIdLessonIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +85,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/studio/': {
+      id: '/studio/'
+      path: '/studio'
+      fullPath: '/studio/'
+      preLoaderRoute: typeof StudioIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/studio/$trackId/$lessonId': {
+      id: '/studio/$trackId/$lessonId'
+      path: '/studio/$trackId/$lessonId'
+      fullPath: '/studio/$trackId/$lessonId'
+      preLoaderRoute: typeof StudioTrackIdLessonIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SplatRoute: SplatRoute,
+  StudioIndexRoute: StudioIndexRoute,
+  StudioTrackIdLessonIdRoute: StudioTrackIdLessonIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

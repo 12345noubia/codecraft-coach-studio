@@ -5,7 +5,7 @@ export type ReviewComment = {
   id: string;
   file: string;
   line: number;
-  type: "praise" | "issue" | "question";
+  type: "teacher" | "praise" | "issue" | "question";
   message: string;
   question?: string;
   answer?: string;
@@ -16,6 +16,8 @@ export type ReviewComment = {
 export type LessonSave = {
   phase: Phase;
   stepIndex: number;
+  lineIndex?: number;
+  typed?: string;
   files: Record<string, string>;
   folders: string[];
   comments: ReviewComment[];
@@ -83,7 +85,16 @@ export const levelFor = (xp: number) => {
 };
 
 export const rankFor = (level: number) =>
-  ["Curious Beginner", "Tag Tinkerer", "Style Sculptor", "Script Scout", "Component Crafter", "API Architect", "Full Stack Pilot", "Code Sensei"][Math.min(7, level - 1)]!;
+  [
+    "Curious Beginner",
+    "Tag Tinkerer",
+    "Style Sculptor",
+    "Script Scout",
+    "Component Crafter",
+    "API Architect",
+    "Full Stack Pilot",
+    "Code Sensei",
+  ][Math.min(7, level - 1)]!;
 
 const lkey = (t: string, l: string) => `codecraft:lesson:${t}/${l}`;
 export const getLessonSave = (t: string, l: string) => safeGet<LessonSave>(lkey(t, l));
@@ -94,4 +105,5 @@ export const clearLessonSave = (t: string, l: string) => {
 
 const CKEY = "codecraft:custom";
 export const getCustomLessons = (): Lesson[] => safeGet<Lesson[]>(CKEY) ?? [];
-export const putCustomLesson = (l: Lesson) => safeSet(CKEY, [l, ...getCustomLessons().filter((x) => x.id !== l.id)].slice(0, 30));
+export const putCustomLesson = (l: Lesson) =>
+  safeSet(CKEY, [l, ...getCustomLessons().filter((x) => x.id !== l.id)].slice(0, 30));

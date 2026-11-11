@@ -11,7 +11,12 @@ const PIN: Record<string, string> = {
 
 export function Pin({ kind, label }: { kind: keyof typeof PIN; label?: string }) {
   return (
-    <span className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-full rounded-bl-none border-2 border-bubble text-[11px] font-bold text-bubble shadow-bubble", PIN[kind])}>
+    <span
+      className={cn(
+        "flex h-7 w-7 shrink-0 items-center justify-center rounded-full rounded-bl-none border-2 border-bubble text-[11px] font-bold text-bubble shadow-bubble",
+        PIN[kind],
+      )}
+    >
       {label ?? <img src={teacher} alt="" className="h-5 w-5 rounded-full object-contain" />}
     </span>
   );
@@ -24,6 +29,8 @@ export function CommentBubble({
   collapsible = false,
   defaultOpen = true,
   pinLabel,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   kind: "teacher" | "praise" | "issue" | "question";
   title: string;
@@ -31,11 +38,22 @@ export function CommentBubble({
   collapsible?: boolean;
   defaultOpen?: boolean;
   pinLabel?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [internalOpen, setInternalOpen] = useState(defaultOpen);
+  const open = controlledOpen ?? internalOpen;
+  const changeOpen = (next: boolean) => {
+    if (controlledOpen === undefined) setInternalOpen(next);
+    onOpenChange?.(next);
+  };
   return (
     <div className="bubble-in flex items-start gap-1.5">
-      <button type="button" onClick={() => collapsible && setOpen((o) => !o)} aria-label={open ? "Collapse comment" : "Open comment"}>
+      <button
+        type="button"
+        onClick={() => collapsible && changeOpen(!open)}
+        aria-label={open ? "Collapse comment" : "Open comment"}
+      >
         <Pin kind={kind} {...(pinLabel ? { label: pinLabel } : {})} />
       </button>
       {open && (
@@ -43,7 +61,11 @@ export function CommentBubble({
           <div className="mb-1 flex items-center justify-between gap-2">
             <span className="text-xs font-semibold">{title}</span>
             {collapsible && (
-              <button type="button" onClick={() => setOpen(false)} className="text-[11px] text-muted-foreground hover:text-foreground">
+              <button
+                type="button"
+                onClick={() => changeOpen(false)}
+                className="text-[11px] text-muted-foreground hover:text-foreground"
+              >
                 Hide
               </button>
             )}
