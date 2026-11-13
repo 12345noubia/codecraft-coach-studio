@@ -34,3 +34,4 @@ use the editor.
 ## Project architecture
 
 - Keep the studio's browser sandbox and local progress in browser-safe modules, and route every Ada request through `src/lib/teacher.functions.ts`; this keeps credentials server-side and makes preview and lesson code safe to render through SSR.
+- Lock the editor only during active teacher playback or a pending assessment, and invalidate assessments on workspace changes; paused lessons must remain editable without stale grades.

@@ -58,6 +58,10 @@ export function blankPractice(lesson: Lesson) {
   return Object.fromEntries(expectedPaths(lesson).map((path) => [path, ""]));
 }
 
+export function manualEditPhase(phase: import("./progress").Phase) {
+  return phase === "watch" || phase === "review" || phase === "done" ? "repeat" : phase;
+}
+
 export function similarity(files: Record<string, string>, reference: Record<string, string>) {
   const wanted = Object.entries(reference);
   if (!wanted.length) return 0;

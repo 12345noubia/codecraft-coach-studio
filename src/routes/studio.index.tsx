@@ -86,6 +86,7 @@ function StudioHome() {
   }, []);
 
   const generate = async () => {
+    if (busy) return;
     if (prompt.trim().length < 8)
       return setError("Describe the topic or project you want to learn in a little more detail.");
     setBusy(true);

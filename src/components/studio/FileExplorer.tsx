@@ -66,14 +66,20 @@ export function FileExplorer({
     if (!creating) return;
     const result = onCreate(creating, path);
     if (result) return setError(result);
-    if (creating === "folder") setOpen((old) => new Set(old).add(path));
+    setOpen((old) => {
+      const next = new Set(old);
+      const parts = path.trim().replace(/\\/g, "/").split("/");
+      const count = creating === "folder" ? parts.length : parts.length - 1;
+      for (let i = 1; i <= count; i++) next.add(parts.slice(0, i).join("/"));
+      return next;
+    });
     setCreating(null);
     setPath("");
     setError("");
   };
 
   const renderNode = (node: Node, depth = 0): React.ReactNode => {
-    const isOpen = open.has(node.path) || depth === 0;
+    const isOpen = open.has(node.path);
     if (node.file) {
       return (
         <div
@@ -109,6 +115,7 @@ export function FileExplorer({
         <div className="group flex items-center pr-1 hover:bg-ide-hover">
           <button
             type="button"
+            aria-expanded={isOpen}
             className="flex min-w-0 flex-1 items-center gap-1 py-[3px] text-left text-[13px] text-ide-fg"
             style={{ paddingLeft: 4 + depth * 13 }}
             onClick={() =>

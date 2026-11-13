@@ -6,3 +6,9 @@
 - [x] Persist lesson progress, XP, levels, streaks, badges, and celebrations.
 - [x] Add AI lesson creation and custom lesson support.
 - [x] Test routing, progress rules, browser interactions, previews, AI responses, and production build output.
+
+# Studio issue repair
+
+- [x] Restore immediate manual editing and safe teaching/playback transitions.
+- [x] Fix folder toggles, save-on-exit, stale grading, and request controls.
+- [x] Verify editing, saving, previews, and lesson flows on desktop and mobile; run regression tests.

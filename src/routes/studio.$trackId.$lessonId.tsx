@@ -78,6 +78,7 @@ import {
   initialActiveFile,
   inspectFiles,
   localComments,
+  manualEditPhase,
   normalizePath,
   safeComments,
   similarity,
@@ -154,7 +155,7 @@ function StudioLoading() {
 function Studio({ track, lesson }: { track: Track; lesson: Lesson }) {
   const ask = useServerFn(askTeacher);
   const reference = useMemo(() => referenceFiles(lesson), [lesson]);
-  const [files, setFiles] = useState<Record<string, string>>({});
+  const [files, setFiles] = useState<Record<string, string>>(() => blankPractice(lesson));
   const [folders, setFolders] = useState<string[]>([]);
   const [activeFile, setActiveFile] = useState(() => initialActiveFile(lesson));
   const [phase, setPhase] = useState<Phase>("watch");
@@ -261,8 +262,14 @@ function Studio({ track, lesson }: { track: Track; lesson: Lesson }) {
       ...(reviewScore !== undefined ? { reviewScore } : {}),
       ...(challengeScore !== undefined ? { challengeScore } : {}),
     };
-    const timer = window.setTimeout(() => putLessonSave(track.id, lesson.id, save), 180);
-    return () => window.clearTimeout(timer);
+    const persist = () => putLessonSave(track.id, lesson.id, save);
+    const timer = window.setTimeout(persist, 180);
+    window.addEventListener("pagehide", persist);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("pagehide", persist);
+      persist();
+    };
   }, [
     challengeScore,
     comments,
@@ -367,6 +374,12 @@ function Studio({ track, lesson }: { track: Track; lesson: Lesson }) {
   }, [addLog, lineIndex, lesson.steps, phase, playing, speed, stepIndex, typed]);
 
   const startWatch = () => {
+    if (busy) return;
+    if (
+      Object.values(files).some((code) => code.trim()) &&
+      !window.confirm("Restart Ada's example? This replaces the current workspace.")
+    )
+      return;
     setFiles({});
     setFolders([]);
     setComments([]);
@@ -395,7 +408,10 @@ function Studio({ track, lesson }: { track: Track; lesson: Lesson }) {
       setWorkspaceTab("preview");
       setStepIndex((index) => index + 1);
     } else if (step.lines[lineIndex]) {
-      const line = step.lines[lineIndex]!;
+      const line = step.lines[lineIndex];
+      if (!line) return;
+      setActiveFile(step.path);
+      setWorkspaceTab("code");
       setFiles((old) => {
         const existing = old[step.path] ?? "";
         const base =
@@ -427,12 +443,18 @@ function Studio({ track, lesson }: { track: Track; lesson: Lesson }) {
   };
 
   const startRepeat = () => {
+    if (
+      Object.values(files).some((code) => code.trim()) &&
+      !window.confirm("Start with empty practice files? This replaces the current code.")
+    )
+      return;
     setPlaying(false);
     setPhase("repeat");
     setFiles(blankPractice(lesson));
     setFolders(referenceFolders(lesson));
     setComments([]);
     setReviewScore(undefined);
+    setChallengeScore(undefined);
     setReviewSummary("");
     setActiveFile(initialActiveFile(lesson));
     setWorkspaceTab("code");
@@ -452,6 +474,11 @@ function Studio({ track, lesson }: { track: Track; lesson: Lesson }) {
   });
 
   const reviewCode = async () => {
+    if (busy) return;
+    if (!Object.values(files).some((content) => content.trim())) {
+      toast.error("Write your solution before asking Ada to review it");
+      return;
+    }
     setPhase("review");
     setPlaying(false);
     const starterComments = localComments(lesson);
@@ -500,6 +527,8 @@ function Studio({ track, lesson }: { track: Track; lesson: Lesson }) {
   };
 
   const startChallenge = () => {
+    if (busy) return;
+    setPlaying(false);
     setPhase("challenge");
     setFiles({});
     setFolders([]);
@@ -516,6 +545,7 @@ function Studio({ track, lesson }: { track: Track; lesson: Lesson }) {
   };
 
   const gradeChallenge = async () => {
+    if (busy) return;
     if (!Object.values(files).some((content) => content.trim())) {
       toast.error("Create at least one file and write your solution first");
       return;
@@ -565,6 +595,7 @@ function Studio({ track, lesson }: { track: Track; lesson: Lesson }) {
   };
 
   const answerQuiz = async (comment: ReviewComment) => {
+    if (busy) return;
     const answer = (answers[comment.id] ?? "").trim();
     if (!answer) {
       toast.error("Write your explanation first");
@@ -628,6 +659,7 @@ function Studio({ track, lesson }: { track: Track; lesson: Lesson }) {
   };
 
   const sendChat = async (text = question) => {
+    if (busy) return;
     const clean = text.trim();
     if (!clean) return;
     const contextLine = currentCode.split("\n")[cursor.line - 1] ?? "";
@@ -665,6 +697,7 @@ function Studio({ track, lesson }: { track: Track; lesson: Lesson }) {
   };
 
   const getHint = async () => {
+    if (busy) return;
     setBusy("hint");
     setTeacherError("");
     try {
@@ -713,9 +746,14 @@ function Studio({ track, lesson }: { track: Track; lesson: Lesson }) {
   };
 
   const createPath = (kind: "file" | "folder", rawPath: string) => {
+    if (playing || busy)
+      return "Pause Ada and wait for the current response before changing files.";
     const path = normalizePath(rawPath);
     const error = validNewPath(path, files, folders, kind === "folder");
     if (error) return error;
+    setChallengeScore(undefined);
+    setReviewScore(undefined);
+    setComments([]);
     if (kind === "folder") setFolders((old) => [...old, path]);
     else {
       setFiles((old) => ({ ...old, [path]: "" }));
@@ -727,8 +765,12 @@ function Studio({ track, lesson }: { track: Track; lesson: Lesson }) {
   };
 
   const deletePath = (path: string, kind: "file" | "folder") => {
+    if (playing || busy) return;
     if (!window.confirm(`Delete ${path}${kind === "folder" ? " and everything inside it" : ""}?`))
       return;
+    setChallengeScore(undefined);
+    setReviewScore(undefined);
+    setComments([]);
     if (kind === "folder") {
       setFolders((old) => old.filter((item) => item !== path && !item.startsWith(path + "/")));
       setFiles((old) =>
@@ -919,7 +961,8 @@ function Studio({ track, lesson }: { track: Track; lesson: Lesson }) {
               <button
                 type="button"
                 onClick={() =>
-                  stepIndex === 0 && !Object.keys(files).length
+                  stepIndex >= lesson.steps.length ||
+                  (stepIndex === 0 && !Object.values(files).some((code) => code.trim()))
                     ? startWatch()
                     : setPlaying((value) => !value)
                 }
@@ -947,22 +990,35 @@ function Studio({ track, lesson }: { track: Track; lesson: Lesson }) {
               </button>
             </div>
           )}
-          {phase === "watch" && stepIndex >= lesson.steps.length && (
-            <StudioButton onClick={startRepeat} icon={GraduationCap}>
+          {phase === "watch" && (
+            <StudioButton
+              onClick={() => {
+                setPlaying(false);
+                setPhase("repeat");
+                setTyped("");
+                setWorkspaceTab("code");
+              }}
+              icon={GraduationCap}
+            >
               Your turn
+            </StudioButton>
+          )}
+          {phase !== "watch" && (
+            <StudioButton onClick={startWatch} disabled={!!busy} icon={Play}>
+              Watch Ada
             </StudioButton>
           )}
           {phase === "repeat" && (
             <StudioButton
               onClick={() => void reviewCode()}
-              disabled={busy === "review"}
+              disabled={!!busy}
               icon={busy === "review" ? LoaderCircle : Sparkles}
             >
               {busy === "review" ? "Reviewing…" : "Review my code"}
             </StudioButton>
           )}
           {phase === "review" && (
-            <StudioButton onClick={startChallenge} icon={Zap}>
+            <StudioButton onClick={startChallenge} disabled={!!busy} icon={Zap}>
               From scratch
             </StudioButton>
           )}
@@ -1157,10 +1213,19 @@ function Studio({ track, lesson }: { track: Track; lesson: Lesson }) {
                   <CodeEditor
                     path={activeFile}
                     value={currentCode}
-                    readOnly={phase === "watch"}
-                    onChange={(value) => setFiles((old) => ({ ...old, [activeFile]: value }))}
+                    readOnly={playing || !!busy}
+                    onChange={(value) => {
+                      if (playing || busy || value === currentCode) return;
+                      setPhase(manualEditPhase(phase));
+                      setTyped("");
+                      setReviewScore(undefined);
+                      setChallengeScore(undefined);
+                      setReviewSummary("");
+                      setComments([]);
+                      setFiles((old) => ({ ...old, [activeFile]: value }));
+                    }}
                     overlays={overlays}
-                    followLine={phase === "watch" ? activeLine : followLine}
+                    followLine={playing ? activeLine : followLine}
                     onCursor={(line, col) => setCursor({ line, col })}
                   />
                 ) : (
@@ -1209,6 +1274,12 @@ function Studio({ track, lesson }: { track: Track; lesson: Lesson }) {
             onClear={() => setLogs([])}
             expanded={terminalOpen}
             onExpanded={setTerminalOpen}
+            onProblem={(problem) => {
+              setActiveFile(problem.file);
+              setWorkspaceTab("code");
+              setFollowLine(problem.line);
+              window.setTimeout(() => setFollowLine(undefined), 100);
+            }}
           />
         </main>
 
@@ -1400,7 +1471,7 @@ function Studio({ track, lesson }: { track: Track; lesson: Lesson }) {
               <div className="mt-5 flex gap-2">
                 <button
                   type="button"
-                  disabled={busy === "hint"}
+                  disabled={!!busy}
                   onClick={() => void getHint()}
                   className="flex flex-1 items-center justify-center gap-1.5 rounded-md border border-ide-border px-2 py-2 text-xs hover:bg-ide-hover"
                 >
@@ -1416,6 +1487,11 @@ function Studio({ track, lesson }: { track: Track; lesson: Lesson }) {
                     <RotateCcw className="h-3.5 w-3.5" />
                     Restart
                   </button>
+                )}
+                {phase !== "watch" && (
+                  <StudioButton onClick={startRepeat} disabled={!!busy} icon={RotateCcw}>
+                    Reset practice
+                  </StudioButton>
                 )}
               </div>
               <div className="mt-5 rounded-lg bg-ide-panel p-3">
@@ -1513,7 +1589,7 @@ function Studio({ track, lesson }: { track: Track; lesson: Lesson }) {
                   <button
                     type="button"
                     aria-label="Send question to Ada"
-                    disabled={busy === "chat" || !question.trim()}
+                    disabled={!!busy || !question.trim()}
                     onClick={() => void sendChat()}
                     className="rounded-md bg-ide-blue p-2 text-primary-foreground disabled:opacity-40"
                   >

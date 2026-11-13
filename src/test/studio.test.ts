@@ -4,6 +4,7 @@ import { buildPreview } from "@/lib/runtime";
 import {
   blankPractice,
   inspectFiles,
+  manualEditPhase,
   normalizePath,
   similarity,
   validNewPath,
@@ -15,6 +16,19 @@ if (!found) throw new Error("Missing test lesson");
 const lesson = found.lesson;
 
 describe("studio rules", () => {
+  it("lets learners take over teaching without forcing them to watch the lesson", () => {
+    expect(manualEditPhase("watch")).toBe("repeat");
+    expect(manualEditPhase("repeat")).toBe("repeat");
+    expect(manualEditPhase("challenge")).toBe("challenge");
+  });
+
+  it("requires a new review after editing a completed lesson", () => {
+    expect(manualEditPhase("done")).toBe("repeat");
+  });
+
+  it("allows a fresh review after correcting reviewed code", () => {
+    expect(manualEditPhase("review")).toBe("repeat");
+  });
   it("starts repeat mode with empty expected files", () => {
     expect(blankPractice(lesson)).toEqual({ "index.html": "" });
   });

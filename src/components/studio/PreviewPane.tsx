@@ -60,6 +60,7 @@ export function PreviewPane({
                 device === value && "bg-ide-hover text-ide-fg shadow-sm",
               )}
               aria-pressed={device === value}
+              aria-label={label}
             >
               <Icon className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">{label}</span>
@@ -103,7 +104,7 @@ export function PreviewPane({
           )}
         >
           {device === "mobile" ? (
-            <div className="phone-frame mx-auto h-full min-h-[560px] w-[310px] rounded-[2.6rem] p-2.5 shadow-bubble">
+            <div className="phone-frame mx-auto h-full min-h-[560px] w-[310px] max-w-full rounded-[2.6rem] p-2.5 shadow-bubble">
               <div className="relative h-full overflow-hidden rounded-[2rem] bg-card">
                 <div className="phone-notch absolute left-1/2 top-2 z-10 h-5 w-24 -translate-x-1/2 rounded-full" />
                 <PreviewFrame
@@ -212,6 +213,8 @@ export function ApiClient({
   const [body, setBody] = useState('{\n  "title": "My new item"\n}');
   const [response, setResponse] = useState("Send a request to inspect the JSON response.");
   const [busy, setBusy] = useState(false);
+  const [ready, setReady] = useState(false);
+  const requestTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const built = useMemo(() => buildPreview("node", files), [files]);
 
   useEffect(() => {
@@ -220,6 +223,7 @@ export function ApiClient({
       if (event.data?.__cc === "log")
         onLog({ level: event.data.level, text: String(event.data.text), source: "preview" });
       if (event.data?.__cc === "response") {
+        clearTimeout(requestTimer.current);
         setBusy(false);
         setResponse(
           `HTTP ${event.data.status}\n\n${typeof event.data.body === "string" ? event.data.body : JSON.stringify(event.data.body, null, 2)}`,
@@ -227,10 +231,20 @@ export function ApiClient({
       }
     };
     window.addEventListener("message", receive);
-    return () => window.removeEventListener("message", receive);
+    return () => {
+      window.removeEventListener("message", receive);
+      clearTimeout(requestTimer.current);
+    };
   }, [onLog]);
 
+  useEffect(() => {
+    setReady(false);
+    setBusy(false);
+    clearTimeout(requestTimer.current);
+  }, [built.html]);
+
   const send = () => {
+    if (busy || !ready || !runner.current?.contentWindow) return;
     let parsed: unknown;
     if (method !== "GET" && method !== "DELETE") {
       try {
@@ -242,6 +256,10 @@ export function ApiClient({
     }
     setBusy(true);
     setResponse("Sending request…");
+    requestTimer.current = setTimeout(() => {
+      setBusy(false);
+      setResponse("The sandbox did not respond. Check Console for errors, then try again.");
+    }, 6000);
     runner.current?.contentWindow?.postMessage(
       { __cc: "request", id: Date.now(), method, path, body: parsed },
       "*",
@@ -253,6 +271,7 @@ export function ApiClient({
       <iframe
         ref={runner}
         title="API sandbox"
+        onLoad={() => setReady(true)}
         sandbox="allow-scripts"
         srcDoc={built.html}
         className="hidden"
@@ -291,7 +310,7 @@ export function ApiClient({
         )}
         <button
           type="button"
-          disabled={busy}
+          disabled={busy || !ready}
           onClick={send}
           className="mt-3 rounded bg-ide-blue px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
         >

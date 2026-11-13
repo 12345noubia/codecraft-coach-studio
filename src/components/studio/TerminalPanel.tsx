@@ -12,6 +12,7 @@ export function TerminalPanel({
   onClear,
   expanded,
   onExpanded,
+  onProblem,
 }: {
   logs: LogEntry[];
   problems: Problem[];
@@ -20,6 +21,7 @@ export function TerminalPanel({
   onClear: () => void;
   expanded: boolean;
   onExpanded: (expanded: boolean) => void;
+  onProblem: (problem: Problem) => void;
 }) {
   const visible = tab === "console" ? logs.filter((log) => log.source === "preview") : logs;
   return (
@@ -82,6 +84,7 @@ export function TerminalPanel({
                 <button
                   type="button"
                   key={`${problem.file}-${problem.line}-${index}`}
+                  onClick={() => onProblem(problem)}
                   className="flex w-full items-start gap-2 text-left text-ide-fg hover:bg-ide-hover"
                 >
                   {problem.severity === "error" ? (
