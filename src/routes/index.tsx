@@ -18,6 +18,7 @@ import teacher from "@/assets/sticker-teacher.png";
 import trophy from "@/assets/sticker-trophy.png";
 import { tracks } from "@/lib/curriculum";
 import { getCustomLessons, getProgress, levelFor, rankFor, type Progress } from "@/lib/progress";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -67,6 +68,12 @@ function Index() {
           <span className="font-display text-xl font-bold">CodeCraft Academy</span>
         </Link>
         <nav className="ml-auto flex items-center gap-2">
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/studio">
+              <Plus />
+              New project
+            </Link>
+          </Button>
           <Link
             to="/studio"
             className="hidden rounded-lg px-4 py-2 text-sm font-semibold hover:bg-secondary sm:block"

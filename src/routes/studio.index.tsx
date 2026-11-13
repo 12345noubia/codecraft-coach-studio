@@ -19,6 +19,7 @@ import { tracks } from "@/lib/curriculum";
 import { getCustomLessons, getProgress, putCustomLesson, type Progress } from "@/lib/progress";
 import { askTeacher } from "@/lib/teacher.functions";
 import type { Lesson } from "@/lib/curriculum";
+import { ProjectLibrary } from "@/components/studio/ProjectLibrary";
 
 export const Route = createFileRoute("/studio/")({
   head: () => ({
@@ -159,6 +160,7 @@ function StudioHome() {
         </span>
       </header>
       <main className="mx-auto max-w-7xl px-5 py-8 md:px-8">
+        <ProjectLibrary />
         {progress.last && (
           <Link
             to="/studio/$trackId/$lessonId"

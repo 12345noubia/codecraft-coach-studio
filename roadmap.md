@@ -12,3 +12,9 @@
 - [x] Restore immediate manual editing and safe teaching/playback transitions.
 - [x] Fix folder toggles, save-on-exit, stale grading, and request controls.
 - [x] Verify editing, saving, previews, and lesson flows on desktop and mobile; run regression tests.
+
+# Personal projects
+
+- [x] Add empty personal project creation, saved project library, and independent workspace.
+- [x] Support arbitrary language files with Ada review and proposed corrections.
+- [x] Verify creation, editing, saving, review, corrections, and mobile layout.

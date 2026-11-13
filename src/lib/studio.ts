@@ -28,13 +28,14 @@ export function validNewPath(
   files: Record<string, string>,
   folders: string[],
   folder = false,
+  requireExtension = true,
 ) {
   const clean = normalizePath(path);
   if (!clean || clean.split("/").some((part) => !part || part === "." || part === ".."))
     return "Use a valid path, such as src/App.jsx.";
   if (!/^[a-zA-Z0-9_./@ -]+$/.test(clean))
     return "Use letters, numbers, spaces, dots, dashes, underscores or slashes.";
-  if (!folder && !clean.split("/").pop()?.includes("."))
+  if (!folder && requireExtension && !clean.split("/").pop()?.includes("."))
     return "Add a file extension, such as .html, .css or .js.";
   if (clean in files || folders.includes(clean)) return "That file or folder already exists.";
   const parents = clean

@@ -48,6 +48,7 @@ export function FileExplorer({
   onSelect,
   onCreate,
   onDelete,
+  workspaceName = "Lesson workspace",
 }: {
   files: Record<string, string>;
   folders: string[];
@@ -55,6 +56,7 @@ export function FileExplorer({
   onSelect: (path: string) => void;
   onCreate: (kind: "file" | "folder", path: string) => string | null;
   onDelete: (path: string, kind: "file" | "folder") => void;
+  workspaceName?: string;
 }) {
   const tree = useMemo(() => makeTree(files, folders), [files, folders]);
   const [open, setOpen] = useState<Set<string>>(() => new Set(folders));
@@ -186,7 +188,7 @@ export function FileExplorer({
         </div>
       </div>
       <div className="border-y border-ide-border bg-ide-panel px-3 py-1 text-[11px] font-semibold uppercase tracking-wide">
-        Lesson workspace
+        {workspaceName}
       </div>
       {creating && (
         <form
