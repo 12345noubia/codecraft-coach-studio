@@ -6,7 +6,11 @@
 
 **An AI coding teacher that writes, explains, and grades code inside a VS Code-style workspace.**
 
-Created by **Noubia Bilomia**
+Created by **Noubia Bilomia Hance**
+
+### [Try CodeCraft live, free in your browser](https://codecraft-coach-studio.lovable.app)
+
+[![Launch the live app](https://img.shields.io/badge/Launch%20the%20live%20app-codecraft--coach--studio.lovable.app-5b2a4e?style=for-the-badge)](https://codecraft-coach-studio.lovable.app)
 
 [Live app](https://codecraft-coach-studio.lovable.app) ·
 [Curriculum](#curriculum) ·
@@ -22,6 +26,37 @@ Created by **Noubia Bilomia**
 </div>
 
 ---
+
+## Try it now
+
+**No installation and no account needed.** Open
+**[codecraft-coach-studio.lovable.app](https://codecraft-coach-studio.lovable.app)**,
+pick a lesson, and Ada starts teaching in seconds. Your progress saves automatically in
+your browser, so you can come back any time and continue where you stopped.
+
+If you enjoy it, please star this repository and share the link with a friend who is
+learning to code.
+
+## Screenshots
+
+### Landing page
+[![CodeCraft landing page](docs/screenshots/landing.png)](https://codecraft-coach-studio.lovable.app)
+
+### Ada teaching a lesson, line by line
+Ada types the code herself and pins an explanation bubble on the exact line she is writing.
+
+[![Ada explaining code with a pinned comment bubble](docs/screenshots/ada-teaching.png)](https://codecraft-coach-studio.lovable.app/studio/css/style-a-card)
+
+### VS Code-style coding workspace
+[![CodeCraft studio workspace](docs/screenshots/studio-workspace.png)](https://codecraft-coach-studio.lovable.app/studio/css/style-a-card)
+
+### Lesson library
+[![Lesson library](docs/screenshots/lesson-library.png)](https://codecraft-coach-studio.lovable.app/studio)
+
+<p align="center">
+  <img src="docs/screenshots/mobile-landing.png" alt="CodeCraft on a phone" width="280" />
+  <br /><em>Works on phones too.</em>
+</p>
 
 ## Overview
 
@@ -176,9 +211,13 @@ behaviour, and personal project storage.
 
 ## Author
 
-**Noubia Bilomia** — creator, designer, and maintainer of CodeCraft Coach Studio.
+**Noubia Bilomia Hance** — creator, designer, and maintainer of CodeCraft Coach Studio.
 
-Copyright © 2026 Noubia Bilomia. All rights reserved.
+Copyright © 2026 Noubia Bilomia Hance. All rights reserved.
+
+## Visit the app
+
+Everyone is welcome to learn with CodeCraft: **[codecraft-coach-studio.lovable.app](https://codecraft-coach-studio.lovable.app)**
 
 ## Acknowledgements
 
