@@ -28,6 +28,7 @@ Created by **Noubia Bilomia Hance**
 ---
 
 ## Try it now
+as you may see below
 
 **No installation and no account needed.** Open
 **[codecraft-coach-studio.lovable.app](https://codecraft-coach-studio.lovable.app)**,
